@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 import environ
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -49,10 +50,13 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     
     'rest_framework',
+    'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
     'users',
     'orgs',
     'rbac',
     'audit',
+    'authx',
 ]
 
 MIDDLEWARE = [
@@ -95,10 +99,22 @@ DATABASES = {
 AUTH_USER_MODEL = "users.User"       # use custom user model
 
 REST_FRAMEWORK = {
-    
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "authx.authentication.CookieJWTAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=10),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=2),
+    
+    "ROTATE_REFRESH_TOKENS": True,       # refresh token changes each refresh
+    "BLACKLIST_AFTER_ROTATION": True,    # invalids old refresh token
+    "UODATE_LAST_LOGIN": True,
 }
 
 # Password validation
