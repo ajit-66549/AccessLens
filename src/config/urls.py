@@ -25,4 +25,5 @@ urlpatterns = [
     path('api/auth/', include("authx.urls")),
     path('api/projects/', include("projects.urls")),
     path('api/apps/', include("apps.urls")),
+    path('api/audit/', include("audit.urls")),
 ]
