@@ -25,9 +25,9 @@ class HasOrgMembership(BasePermission):
             return False
         
         # get the membership of that user with that organization
-        membership = Membership(
-            Membership.objects.
-            select_related("organization", "user")
+        membership = (
+            Membership.objects
+            .select_related("organization", "user")
             .filter(user=request.user, organization=org, is_active=True)
             .first()
         )
