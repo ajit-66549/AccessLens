@@ -7,6 +7,8 @@ from projects.models import Project
 from .models import App
 from .serializers import AppSerializer
 
+from audit.services import write_audit_event
+
 # Create your views here.
 class AppListCreateView(APIView):
     permission_classes = [HasOrgMembership]
@@ -30,5 +32,12 @@ class AppListCreateView(APIView):
             organization=request.org,
             **serializer.validated_data,
         )
+        # Audit log
+        write_audit_event(request=request, 
+                          organization=request.org,
+                          action="app.created",
+                          target_type=" App",
+                          target_id=app.id,
+                          meta={"key": app.key, "name": app.name, "project_id": str(app.project_id)},)
         
         return Response(AppSerializer(app).data, status=status.HTTP_201_CREATED)
