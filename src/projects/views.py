@@ -5,6 +5,9 @@ from .models import Project
 from .serializers import ProjectSerializer
 from orgs.permissions import HasOrgMembership
 
+from django.db import IntegrityError
+from rest_framework.exceptions import ValidationError
+
 # Create your views here.
 class ProjectListCreateView(APIView):
     # verify the user is the member of that organization, if yes then organization and membership are attached on request
@@ -20,5 +23,8 @@ class ProjectListCreateView(APIView):
         serializer = ProjectSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
-        project = Project.objects.create(organization=request.org, **serializer.validated_data,)
-        return Response(ProjectSerializer(project).data, status=status.HTTP_201_CREATED)
+        try:
+            project = Project.objects.create(organization=request.org, **serializer.validated_data,)
+            return Response(ProjectSerializer(project).data, status=status.HTTP_201_CREATED)
+        except IntegrityError:
+            raise ValidationError({"key": "Project key must be unique within the organization"})
