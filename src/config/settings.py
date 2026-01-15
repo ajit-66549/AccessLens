@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'rbac',
     'audit',
     'authx',
+    'projects',
 ]
 
 MIDDLEWARE = [
