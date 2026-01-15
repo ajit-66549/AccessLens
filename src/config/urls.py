@@ -24,4 +24,5 @@ urlpatterns = [
     path('api/rbac/', include("rbac.urls")),
     path('api/auth/', include("authx.urls")),
     path('api/projects/', include("projects.urls")),
+    path('api/apps/', include("apps.urls")),
 ]

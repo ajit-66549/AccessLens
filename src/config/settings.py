@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'audit',
     'authx',
     'projects',
+    'apps',
 ]
 
 MIDDLEWARE = [
