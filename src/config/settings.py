@@ -102,8 +102,9 @@ AUTH_USER_MODEL = "users.User"       # use custom user model
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
+        "apps.authentication.AppApiKeyAuthentication",
         "authx.authentication.CookieJWTAuthentication",
-        "rest_framework.authentication.SessionAuthentication",
+        
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
