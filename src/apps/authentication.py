@@ -5,16 +5,16 @@ from .models import Apikey
 
 class AppApiKeyAuthentication(BaseAuthentication):
     """
-    Authorization: Bearer <api_key>
+    Authorization: ApiKey <api_key>
     """
-    keyword = "Bearer"
+    keyword = "ApiKey"
     
     def authenticate(self, request):
         auth = request.headers.get("Authorization", "")
         if not auth:
             return None
         
-        parts = auth.split(" ", 1)  # ["Bearer", api_key]
+        parts = auth.split(" ", 1)  # ["ApiKey", api_key]
         
         if len(parts) != 2 or parts[0] != self.keyword:
             return None
@@ -22,7 +22,7 @@ class AppApiKeyAuthentication(BaseAuthentication):
         # get the raw key from the header
         raw_key = parts[1].strip()
         if not raw_key:
-            raise AuthenticationFailed("Invalid Api Key")
+            raise AuthenticationFailed("Missing API key.")
         
         key_hash = Apikey.hash_key(raw_key)
         

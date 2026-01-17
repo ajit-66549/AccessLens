@@ -6,7 +6,11 @@ from orgs.permissions import HasOrgMembership
 from rbac.permissions import IsOrgAdminOrOwner
 from .models import App, Apikey
 
-class CreateApiKeyView(Apikey):
+from apps.authentication import AppApiKeyAuthentication
+from rest_framework.permissions import IsAuthenticated
+from .permissions import HasAppApiKey
+
+class CreateApiKeyView(APIView):
     """"
     Create an api key and return raw key
     """
@@ -48,3 +52,15 @@ class CreateApiKeyView(Apikey):
                 "raw_key": raw_key,
             }, status=status.HTTP_201_CREATED,
         )
+        
+class ApiKeyPingView(APIView):
+    authentication_classes = [AppApiKeyAuthentication]
+    permission_classes = [HasAppApiKey]
+    
+    def get(self, request):
+        return Response({
+            "ok": True,
+            "app_id": str(request.app.id),
+            "project_id": str(request.project.id),
+            "org_slug": request.org.slug,
+        })

@@ -75,4 +75,4 @@ class Apikey(models.Model):
         Hash the raw api key to store or compare safely
         Convert the string (raw api_key) into bytes, hash that bytes, and convert back to string
         """
-        return hashlib.sha256(raw_key.encode("utf.8")).hexdigest()
+        return hashlib.sha256(raw_key.encode("utf-8")).hexdigest()

@@ -7,6 +7,7 @@ from .cookies import auth_auth_cookies, clear_auth_cookies
 
 # Create your views here.
 class LoginView(APIView):
+    authentication_classes = []     # to skip the global authentication
     permission_classes = [permissions.AllowAny]
     
     def post(self, request):
@@ -25,6 +26,7 @@ class LoginView(APIView):
         return res
     
 class RefreshView(APIView):
+    authentication_classes = []     # to skip the global authentication
     permission_classes = [permissions.AllowAny]
     
     def post(elf, request):
