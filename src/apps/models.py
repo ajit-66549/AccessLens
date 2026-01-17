@@ -4,7 +4,6 @@ from django.db import models
 from orgs.models import Organization
 from projects.models import Project
 
-import uuid
 import secrets
 import hashlib
 
