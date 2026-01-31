@@ -106,3 +106,43 @@ class AppDetailView(APIView):
             meta=app_snap
         )
         return Response({"details": "App Deleted"}, status=status.HTTP_204_NO_CONTENT)
+    
+class ProjectAppDetailView(APIView):
+    permission_classes = [HasOrgMembership]
+    
+    # first get the project
+    def get_project(self, request, project_id):
+        return get_object_or_404(Project, id=project_id, organization=request.org)
+    
+    # get all the apps in that project
+    def get(self, request, project_id):
+        project = self.get_project(request, project_id)
+        all_apps = App.objects.filter(organization=request.org, project=project).select_related("project").order_by("-created_at")
+        return Response(AppSerializer(all_apps).data)
+    
+    # create new app in that project
+    def post(self, request, project_id):
+        project = self.get_project(request, project_id)
+        serializer = AppSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        if "project" in serializer.validated_data and serializer.validated_data["project"].id != project.id:
+            return Response({"details": "Project does not match the requested project."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        app_payload = dict(serializer.validated_data)
+        app_payload.pop("project", None)  # removing project does't let to client to decide which project, app belongs to
+        
+        try:
+            app = App.objects.create(organization=request.org, project=project, **app_payload)
+        except IntegrityError:
+            return ValidationError({"details": "App key must be unique within the project"})
+        
+        write_audit_event(
+            request=request,
+            organization=request.org,
+            action="App.created",
+            target_type="App",
+            target_id=app.id,
+            meta={"key": app.key, "name": app.name, "project_id": str(app.project_id)},
+        )
+        return Response(AppSerializer(app).data, status=status.HTTP_201_CREATED)
