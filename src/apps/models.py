@@ -91,5 +91,5 @@ class Apikey(models.Model):
     def hash_key(cls, raw_key: str) -> str:
         """Hash API key after validating format and checksum."""
         if not cls.validate_key_format(raw_key):
-            raise ValueError("Invalid API key format or checksum.")
+            raise ValueError("Invalid API key format or checksum")
         return hashlib.sha256(raw_key.encode("utf-8")).hexdigest()
