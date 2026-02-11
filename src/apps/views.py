@@ -10,11 +10,17 @@ from .models import App
 from .serializers import AppSerializer
 from projects.models import Project
 from orgs.permissions import HasOrgMembership
+from rbac.permissions import IsOrgAdminOrOwner
 from audit.services import write_audit_event
 
 # Create your views here.
 class AppListCreateView(APIView):
     permission_classes = [HasOrgMembership]
+    
+    def get_permissions(self, request):
+        if self.request.method in ["POST"]:
+            return [IsOrgAdminOrOwner()]
+        return [HasOrgMembership()]
     
     # get all the apps
     def get(self, request):
@@ -52,11 +58,16 @@ class AppListCreateView(APIView):
 class AppDetailView(APIView):
     permission_classes = [HasOrgMembership]
     
+    def get_permissions(self):
+        if self.request.method in {"PUT", "PATCH", "DELETE"}:
+            return [IsOrgAdminOrOwner()]
+        return [HasOrgMembership()]
+    
     def get_object(self, request, app_id):
         return get_object_or_404(App, id=app_id, organization=request.org)
     
     def get(self, request, app_id):
-        app = get_object_or_404(request, app_id)
+        app = self.get_object(request, app_id)
         return Response(AppSerializer(app).data)
     
     def put(self, request, app_id):
@@ -109,6 +120,11 @@ class AppDetailView(APIView):
     
 class ProjectAppDetailView(APIView):
     permission_classes = [HasOrgMembership]
+    
+    def get_permissions(self, request):
+        if self.request.method in ["POST"]:
+            return [IsOrgAdminOrOwner()]
+        return [HasOrgMembership()]
     
     # first get the project
     def get_project(self, request, project_id):
