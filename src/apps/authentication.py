@@ -24,7 +24,10 @@ class AppApiKeyAuthentication(BaseAuthentication):
         if not raw_key:
             raise AuthenticationFailed("Missing API key.")
         
-        key_hash = Apikey.hash_key(raw_key)
+        try:
+            key_hash = Apikey.hash_key(raw_key)
+        except ValueError:
+            return AuthenticationFailed("Invalid API key format")
         
         api_key = (Apikey.objects
                          .select_related("app__project__organization")
