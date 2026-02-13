@@ -104,11 +104,16 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "apps.authentication.AppApiKeyAuthentication",
         "authx.authentication.CookieJWTAuthentication",
-        
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "api_keys_write": "30/minutes",
+    }
 }
 
 SIMPLE_JWT = {

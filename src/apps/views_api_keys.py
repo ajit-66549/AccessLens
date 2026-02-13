@@ -9,6 +9,7 @@ from audit.services import write_audit_event
 
 from apps.authentication import AppApiKeyAuthentication
 from .permissions import HasAppApiKey
+from .throttles import ApiKeyWriteRateThrottle
 
 def SerializeApiKey(api_key: Apikey) -> dict:
     return {
@@ -26,6 +27,7 @@ class ApiKeyListCreateView(APIView):
     Create an api key and return raw key
     """
     permission_classes = [IsOrgAdminOrOwner]
+    throttle_classes = [ApiKeyWriteRateThrottle]
     
     # give the app with the given id 
     def get_app(self, request, app_id):
@@ -93,6 +95,7 @@ class ApiKeyListCreateView(APIView):
 # disable the api_key
 class ApiKeyRevokeView(APIView):
     permission_classes = [IsOrgAdminOrOwner]
+    throttle_classes = [ApiKeyWriteRateThrottle]
     
     def post(self, request, app_id, key_id):
         try:
@@ -133,6 +136,7 @@ class ApiKeyRevokeView(APIView):
 # creates a new api_key for the app, and revokes the old one
 class ApiKeyRotateView(APIView):
     permission_classes = [IsOrgAdminOrOwner]
+    throttle_classes = [ApiKeyWriteRateThrottle]
     
     def post(self, request, app_id, key_id):
         try:
