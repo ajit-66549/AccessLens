@@ -3,12 +3,11 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.utils import timezone
 
-from orgs.permissions import HasOrgMembership
-from rbac.permissions import IsOrgAdminOrOwner
 from .models import App, Apikey
+from rbac.permissions import IsOrgAdminOrOwner
+from audit.services import write_audit_event
 
 from apps.authentication import AppApiKeyAuthentication
-from rest_framework.permissions import IsAuthenticated
 from .permissions import HasAppApiKey
 
 def SerializeApiKey(api_key: Apikey) -> dict:
@@ -43,12 +42,12 @@ class ApiKeyListCreateView(APIView):
     
     # lists all the api_keys in the app
     def get(self, request, app_id):
-        apps, error_message = self.get_app(request, app_id)
+        app, error_message = self.get_app(request, app_id)
         
         if error_message:
             return error_message
         
-        api_keys = Apikey.objects.filter(app=apps).select_related("created_by").order_by("-created.at")
+        api_keys = Apikey.objects.filter(app=app).select_related("created_by").order_by("-created.at")
         return Response([SerializeApiKey(api_key) for api_key in api_keys])
     
     def post(self, request, app_id):
@@ -70,6 +69,15 @@ class ApiKeyListCreateView(APIView):
             key_hash=key_hash,
             name=name,
             created_by=request.user if request.user.is_authenticated else None,
+        )
+        
+        write_audit_event(
+            request=request,
+            organization=request.org,
+            action="api_key.created",
+            target_type="api_key",
+            target_id=api_key.id,
+            meta={"app_id": str(app.id), "name": api_key.name},
         )
         
         # Return raw key once
@@ -111,6 +119,15 @@ class ApiKeyRevokeView(APIView):
         api_key.revoked_at = timezone.now() 
         api_key.save(update_fields=["is_active", "revoked_at"])
         
+        write_audit_event(
+            request=request,
+            organization=request.org,
+            action="api_key.revoke",
+            target_type="api_key",
+            target_id=api_key.id,
+            meta={"app_id": str(app.id)},
+        )
+        
         return Response({"detail": "Apikey revoked.", "api_key": SerializeApiKey(api_key)}, status=status.HTTP_200_OK)
         
 # creates a new api_key for the app, and revokes the old one
@@ -119,7 +136,7 @@ class ApiKeyRotateView(APIView):
     
     def post(self, request, app_id, key_id):
         try:
-            app = App.objects.select_related("project__organization").get(app=app_id)
+            app = App.objects.select_related("project__organization").get(id=app_id)
         except App.DoesNotExist:
             return Response({"deatil": "App does not exist"}, status=status.HTTP_404_NOT_FOUND)
         
@@ -144,6 +161,15 @@ class ApiKeyRotateView(APIView):
         old_key.is_active = False
         old_key.revoked_at = timezone.now()
         old_key.save(update_fields=["is_active", "revoked_at"])
+        
+        write_audit_event(
+            request=request,
+            organization=request.org,
+            action="api_key.rotated",
+            target_type="api_key",
+            target_id=new_key.id,
+            meta={"revoked_key_id": str(old_key.id), "app_id": str(app.id)},
+        )
         
         return Response({
             "detail": "Api key rotated",
