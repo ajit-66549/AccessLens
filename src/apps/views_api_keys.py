@@ -49,7 +49,7 @@ class ApiKeyListCreateView(APIView):
         if error_message:
             return error_message
         
-        api_keys = Apikey.objects.filter(app=app).select_related("created_by").order_by("-created.at")
+        api_keys = Apikey.objects.filter(app=app).select_related("created_by").order_by("-created_at")
         return Response([SerializeApiKey(api_key) for api_key in api_keys])
     
     def post(self, request, app_id):
