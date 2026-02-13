@@ -1,14 +1,17 @@
 from django.contrib.auth import authenticate
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework import status, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework import status, permissions
+from rest_framework_simplejwt.tokens import RefreshToken
+
 from .cookies import auth_auth_cookies, clear_auth_cookies
+from .throttles import LoginRateThrottle, RefreshRateThrottle
 
 # Create your views here.
 class LoginView(APIView):
     authentication_classes = []     # to skip the global authentication
     permission_classes = [permissions.AllowAny]
+    throttle_classes = [LoginRateThrottle]
     
     def post(self, request):
         username = request.data.get("username")
@@ -28,8 +31,9 @@ class LoginView(APIView):
 class RefreshView(APIView):
     authentication_classes = []     # to skip the global authentication
     permission_classes = [permissions.AllowAny]
+    throttle_classes = [RefreshRateThrottle]
     
-    def post(elf, request):
+    def post(self, request):
         refresh_token = request.COOKIES.get("refresh")
         
         if not refresh_token:

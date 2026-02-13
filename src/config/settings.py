@@ -110,10 +110,13 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.UserRateThrottle",
+        "rest_framework.throttling.AnnonRateThrottle",
     ],
     "DEFAULT_THROTTLE_RATES": {
         "api_keys_write": "30/minutes",
-    }
+        "auth_login": "10/minute",
+        "auth_refresh": "30/minute",
+    },
 }
 
 SIMPLE_JWT = {
