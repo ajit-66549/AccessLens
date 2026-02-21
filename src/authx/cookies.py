@@ -9,13 +9,15 @@ def auth_auth_cookies(response, access_token: str, refresh_token: str) -> None:
     Access token sent to all routes
     refresh token sent to only api/auth/* routes
     """
+    cookie_settings = settings.AUTH_COOKIE_SETTINGS
+    
     # set access token
     response.set_cookie(
         ACCESS_COOKIE,
         access_token,
         httponly=True,
-        secure=False,
-        samesite="Lax",
+        secure=cookie_settings["access_secure"],
+        samesite=cookie_settings["samesite"],
         path="/",
     )
     # set refresh token
@@ -23,8 +25,8 @@ def auth_auth_cookies(response, access_token: str, refresh_token: str) -> None:
         REFRESH_COOKIE,
         refresh_token,
         httponly=True,
-        secure=False,
-        samesite="Lax",
+        secure=cookie_settings["access_secure"],
+        samesite=cookie_settings["samesite"]
         path="/api/auth/",   # refresh cookie only sent to auth endpoints
     )
 

@@ -116,6 +116,8 @@ REST_FRAMEWORK = {
         "api_keys_write": "30/minutes",
         "auth_login": "10/minute",
         "auth_refresh": "30/minute",
+        "user": "100/minute",
+        "anon": "50/minute",
     },
 }
 
@@ -126,6 +128,20 @@ SIMPLE_JWT = {
     "ROTATE_REFRESH_TOKENS": True,       # refresh token changes each refresh
     "BLACKLIST_AFTER_ROTATION": True,    # invalids old refresh token
     "UODATE_LAST_LOGIN": True,
+}
+
+# Cookie/CSRF security defaults for cookie-based auth.
+CSRF_COOKIE_NAME = "csrftoken"
+CSRF_COOKIE_HTTPONLY = False
+CSRF_COOKIE_SECURE = env("ACCESS_COOKIE_SECURE")
+CSRF_COOKIE_SAMESITE = env("AUTH_COOKIE_SAMESITE")
+SESSION_COOKIE_SECURE = env("ACCESS_COOKIE_SECURE")
+SESSION_COOKIE_SAMESITE = env("AUTH_COOKIE_SAMESITE")
+
+AUTH_COOKIE_SETTINGS = {
+    "access_secure": env("ACCESS_COOKIE_SECURE"),
+    "refresh_secure": env("REFRESH_COOKIE_SECURE"),
+    "samesite": env("AUTH_COOKIE_SAMESITE"),
 }
 
 # Password validation
