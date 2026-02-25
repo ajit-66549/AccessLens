@@ -12,6 +12,7 @@ from projects.models import Project
 from orgs.permissions import HasOrgMembership
 from rbac.permissions import IsOrgAdminOrOwner
 from audit.services import write_audit_event
+from billing.services import can_create_app, record_usage
 
 # Create your views here.
 class AppListCreateView(APIView):
@@ -37,6 +38,11 @@ class AppListCreateView(APIView):
         if project.organization_id != request.org.id:
             return Response({"detail": "Project does not belong to this organization."}, status=status.HTTP_400_BAD_REQUEST)
         
+        # check if more apps can be created in this plan
+        if not can_create_app(request.org):
+            return Response({"detail": "Plan limit reached. Upgrade your plan to create more apps."},
+                            status=status.HTTP_402_PAYMENT_REQUIRED)
+        
         try:
             app = App.objects.create(
             organization=request.org,
@@ -44,6 +50,9 @@ class AppListCreateView(APIView):
             )
         except IntegrityError:
             return ValidationError({"details": "App key must be unique within the project"})
+        
+        # store the record of usage
+        record_usage(request.org, "apps", 1) 
         
         # Audit log
         write_audit_event(request=request, 
@@ -148,10 +157,16 @@ class ProjectAppDetailView(APIView):
         app_payload = dict(serializer.validated_data)
         app_payload.pop("project", None)  # removing project does't let to client to decide which project, app belongs to
         
+        if not can_create_app(request.org):
+            return Response({"detail": "Plan limit reached. Upgrade your plan to create more apps."},
+                            status=status.HTTP_402_PAYMENT_REQUIRED)
+        
         try:
             app = App.objects.create(organization=request.org, project=project, **app_payload)
         except IntegrityError:
             return ValidationError({"details": "App key must be unique within the project"})
+        
+        record_usage(request.org, "apps", 1)
         
         write_audit_event(
             request=request,

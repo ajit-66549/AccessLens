@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'authx',
     'projects',
     'apps',
+    'billing',
 ]
 
 MIDDLEWARE = [
