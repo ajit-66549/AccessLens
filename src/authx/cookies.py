@@ -26,7 +26,7 @@ def auth_auth_cookies(response, access_token: str, refresh_token: str) -> None:
         refresh_token,
         httponly=True,
         secure=cookie_settings["access_secure"],
-        samesite=cookie_settings["samesite"]
+        samesite=cookie_settings["samesite"],
         path="/api/auth/",   # refresh cookie only sent to auth endpoints
     )
 
